@@ -1,8 +1,8 @@
-# Data Engineer
+# Senior Fullstack Engineer
 
 ## Description
 
-Flashbots is looking for a data engineer with experience architecting, optimizing, and maintaining data infrastructure. You will own and be responsible for all Flashbots data pipelines aggregating data across our services and servicing research and product teams with data needs. You must have some existing understanding of DeFi protocols and ability to create / improve [mev-inspect codebase](https://github.com/flashbots/mev-inspect-rs).
+Senior fullstack engineer to support our engineering efforts across the organization. You will be expected to lead your own projects as well as contribute to projects across the organization. Our current stack involves javascript, typescript, go, rust, and python. You will have the opportunity to work on both core products and research efforts.
 
 ## Flashbots
 

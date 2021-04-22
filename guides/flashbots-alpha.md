@@ -1,6 +1,6 @@
 # Flashbots Alpha
 
-A collection of relevant information related to the Flashbots Alpha release and running bots using Flashbots. This document will be continuously updated as we receive more questions you.
+A collection of relevant information related to the Flashbots Alpha release and running bots using Flashbots. This document will be continuously updated as we receive more questions from you.
 
 ## Contents
 1. [Announcement](#announcement)
@@ -18,7 +18,7 @@ You can start submitting transaction bundles on mainnet by following these steps
 
 After successfully mining our first bundle in block [11550019](https://bit.ly/38ahRyC) and doing reliability testing over the following days, we are ready to open this proof of concept to the public for anyone to get their Ethereum transactions prioritized using Flashbots bundles. We've open sourced the simple arbitrage searcher @epheph#8354 built for testing [here](https://bit.ly/3hGbDtk). You should be able to run this searcher out of the box.
 
-While anyone is able to send bundles directly to miners who have published their `eth_sendBundle` RPC endpoint, we've built a hosted gateway called `mev-relay` which forwards bundles to mining pools who registered their `mev-geth` nodes. This should make it easier for you to reach all miners in one place. You can find the `mev-relay` source code [here](https://bit.ly/390zf8b).
+We've built a hosted gateway called `mev-relay` that receives bundles from searchers and forwards them to mining pools who registered their `mev-geth` nodes with Flashbots. Using MEV-relay is required during the alpha to aggregate bundle requests from all users, prevent spam and DOS attacks on participating miner(s)/mining pool(s), and collect necessary system health metrics. You can find the `mev-relay` source code [here](https://bit.ly/390zf8b). We are working to remove this requirement in future releases of mev-geth.
 
 Please be aware that if you decide to use any relay to submit bundles, the operator of the relay is a trusted intermediary. They can see the content of the bundles and potentially censor or steal them. :warning: Only send bundles to a relay you trust! :warning:We encourage other trusted parties to build their own relays for Flashbots bundles in order to increase system redundancy.
 
@@ -58,24 +58,21 @@ There is currently 1-10% of hashrate at any time running this alpha. This figure
 
 ### What's MEV-Relay?
 
-MEV-Relay is a hosted gateway which forwards bundles to mining pools who registered their mev-geth nodes so that it's easier for you to reach all miners in one place. You can find the mev-relay source code [here](https://bit.ly/390zf8b). To be clear, anyone is free to send bundles directly to miners who have published their eth_sendBundle RPC endpoint.
+MEV-Relay is a hosted gateway which forwards bundles to mining pools who registered their mev-geth nodes so that it's easier for you to reach all miners in one place. You can find the mev-relay source code [here](https://bit.ly/390zf8b). Using MEV-relay is required during the alpha to aggregate bundle requests from all users, prevent spam and DOS attacks on participating miner(s)/mining pool(s), and collect necessary system health metrics. We are working to remove this requirement in future releases of mev-geth.
 
 :warning: Please be aware that if you decide to use any relay to submit bundles, the operator of the relay is a trusted intermediary. They can see the content of the bundles and potentially censor or steal them. Only send bundles to a relay you trust. :warning: We encourage other trusted parties to build other relays for Flashbots bundles in order to increase system redundancy. 
 
-### Why do I need an API key to access this alpha?
+### What sort of key do I need to access the relay?
 
-While Flashbots infrastructure will be permisionless over the longer term, it is permisioned for this proof of concept in order to ensure stability and security of the system. 
+Note: Initially, the Flashbots MEV-Relay was released with a required set of API Keys that needed to be provided with every relay interaction, if you have one of these keys, you no longer need to use it.
 
-### Why was my API key rate-limited or suspended?
+MEV-relay expects payloads to be signed using a standard Ethereum private key. This relay signing address does not need to be given to Flashbots in advance, and it does not need to store any ETH or other assets (and we recommend it does not and it should be a different key from your bot's EOA key).
 
-There are several reasons this could be the case:
-* **Bundle submission of over 60 a minute**
-Each API key has a rate-limit of 60 bundle submissions a minute to ensure the stability and security of the alpha. 
-* **Excessively large gas limits**
-Large gas limits prohibit us from estimating the upper-bound of evm processing requirements.
-* **Excessive submission of bundle with irrelevant transactions**
-Submitting bundles that includes transactions irrelevant to you will cause instability of the alpha.
+The signature needs to be provided via the 'X-Flashbots-Signature' Header. Reference implementation can be found in the [Flashbots Ethers Provider](https://github.com/flashbots/ethers-provider-flashbots-bundle/blob/9e039cc92fcaa3d15e71f11faa7acf4f4f0674fa/src/index.ts#L307-L310)
 
+### Why do I need to provide this unrelated auth-signing key?
+
+By signing payloads with your own relay signing key, this will enable building a reputation for high-priority delivery of your bundles to miners. The relay simulates bundles before sending to miners which can take a small amount of time. The relay cannot determine which bundles are profitable without performing a full simulation. This signing key allows the relay to infer which bundles are likely profitable, based on historical performance. Using a reputation system allows reliable searchers to be rewarded while still allowing new searchers to participate.
 
 ### How do I target a timestamp range instead of a block number when submitting a bundle?
 
